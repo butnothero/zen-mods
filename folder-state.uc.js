@@ -97,7 +97,7 @@
     // Zen fires these same events during session restore. During that phase
     // only record changes following a real UI interaction.
     const lastInput = recentActions.get(group.id) || 0;
-    if (!restoring || Date.now() - lastInput < USER_ACTION_WINDOW_MS) {
+    if (Date.now() - lastInput < USER_ACTION_WINDOW_MS) {
       recordState(group);
     }
   }
