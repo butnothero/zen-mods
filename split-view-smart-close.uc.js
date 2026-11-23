@@ -1,24 +1,23 @@
 // ==UserScript==
 // @name           Split View Smart Close
-// @description    One close control for inactive Split View without affecting tab layout.
+// @description    One native close icon for inactive Split Views, per-tab icons when active.
 // @include        main
 // ==/UserScript==
 
 (() => {
   "use strict";
+
   const PREFIX = "[Split View Smart Close]";
   const STYLE_ID = "zen-split-smart-close-style";
-  const BUTTON_ID = "zen-split-smart-close-overlay";
   const INACTIVE = "data-zen-smart-close-inactive";
+  const LAST = "data-zen-smart-close-last";
+
   if (window.__zenSplitSmartClose) return;
   window.__zenSplitSmartClose = true;
 
-  let hovered = null;
-  let button = null;
-  let scheduled = false;
-
   const groups = () =>
     [...document.querySelectorAll('tab-group[split-view-group]')];
+
   const tabs = group =>
     [...(group?.tabs || [])].filter(tab => tab?.localName === "tab");
 
@@ -29,165 +28,118 @@
       tabs(group).some(tab => tab.selected);
   }
 
-  function hide() {
-    button?.style.setProperty("display", "none", "important");
-  }
-
-  function closeAll(group) {
-    if (!group?.isConnected || isActive(group)) return;
-    const members = tabs(group);
-    hovered = null;
-    hide();
-    // Snapshot before closing: Zen can dissolve a split group mid-operation.
-    for (const tab of members) {
-      if (!tab.isConnected || tab.closing) continue;
-      try {
-        window.gBrowser.removeTab(tab, { animate: false });
-      } catch (error) {
-        console.error(PREFIX, "Failed to close tab", error);
-      }
-    }
-  }
-
-  function injectCSS() {
+  function installCSS() {
     if (document.getElementById(STYLE_ID)) return;
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = [
-      /* Zen sets visibility: visible !important on tab-close-button hover.
-         Higher specificity and display:none override that native rule. */
-      '#tabbrowser-tabs tab-group[split-view-group][' + INACTIVE + '="true"] > .tab-group-container > .tabbrowser-tab .tab-close-button {',
-      '  display: none !important; visibility: hidden !important;',
+      // Zen uses visibility: visible !important, so override with matching
+      // specificity; no extra XUL children and no absolute overlay.
+      '#tabbrowser-tabs tab-group[split-view-group][' + INACTIVE + '="true"] .tab-group-container > .tabbrowser-tab:not([' + LAST + ']) .tab-close-button {',
+      '  visibility: hidden !important; pointer-events: none !important;',
+      '}',
+      '#tabbrowser-tabs tab-group[split-view-group][' + INACTIVE + '="true"] .tab-group-container > .tabbrowser-tab[' + LAST + '] .tab-close-button {',
+      '  display: block !important; visibility: hidden !important;',
       '  pointer-events: none !important;',
       '}',
-      '#' + BUTTON_ID + ' {',
-      '  appearance: none !important; -moz-appearance: none !important;',
-      '  position: fixed !important; z-index: 2147483647 !important;',
-      '  display: none; align-items: center; justify-content: center;',
-      '  box-sizing: border-box; width: 24px !important;',
-      '  min-width: 24px !important; height: 24px !important;',
-      '  min-height: 24px !important; padding: 0 !important;',
-      '  margin: 0 !important; border: 0 !important;',
-      '  border-radius: 5px !important; font-size: 18px !important;',
-      '  line-height: 1 !important; color: inherit !important;',
-      '  background: var(--toolbarbutton-hover-background, rgba(120,120,120,.20)) !important;',
-      '  cursor: pointer;',
-      '}',
-      '#' + BUTTON_ID + ':hover {',
-      '  background: var(--toolbarbutton-active-background, rgba(120,120,120,.35)) !important;',
+      '#tabbrowser-tabs tab-group[split-view-group][' + INACTIVE + '="true"]:hover .tab-group-container > .tabbrowser-tab[' + LAST + '] .tab-close-button {',
+      '  visibility: visible !important; pointer-events: auto !important;',
       '}'
     ].join("\n");
     document.documentElement.appendChild(style);
   }
 
-  function addOverlay() {
-    if (button?.isConnected) return;
-    button = document.createXULElement("toolbarbutton");
-    button.id = BUTTON_ID;
-    button.setAttribute("label", "×");
-    button.setAttribute("tooltiptext", "Закрыть все вкладки Split View");
-    button.setAttribute("aria-label", "Закрыть все вкладки Split View");
-    // Never append children to tab-group: that changes Zen's flex layout
-    // and can trigger a move/reflow while clicking split-view tabs.
-    document.documentElement.appendChild(button);
-
-    for (const name of ["pointerdown", "mousedown", "mouseup", "dblclick", "command"]) {
-      button.addEventListener(name, event => {
-        event.preventDefault();
-        event.stopPropagation();
-      }, true);
-    }
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (event.button === 0) closeAll(hovered);
-    }, true);
-  }
-
-  function position(group) {
-    const content = group.querySelector(":scope > .tab-group-container") || group;
-    const rect = content.getBoundingClientRect();
-    if (rect.width < 35 || rect.height < 18) {
-      hide();
-      return;
-    }
-    button.style.setProperty("left", Math.round(rect.right - 27) + "px", "important");
-    button.style.setProperty("top", Math.round(rect.top + (rect.height - 24) / 2) + "px", "important");
-    button.style.setProperty("display", "flex", "important");
-  }
-
-  function refresh() {
-    scheduled = false;
-    try {
-      for (const group of groups()) {
-        const next = String(!isActive(group));
-        if (group.getAttribute(INACTIVE) !== next) {
-          group.setAttribute(INACTIVE, next);
+  function updateGroups() {
+    for (const group of groups()) {
+      const members = tabs(group);
+      const inactive = !isActive(group);
+      if (group.getAttribute(INACTIVE) !== String(inactive)) {
+        group.setAttribute(INACTIVE, String(inactive));
+      }
+      const last = members.at(-1);
+      for (const tab of members) {
+        if (tab === last && !tab.hasAttribute(LAST)) {
+          tab.setAttribute(LAST, "");
+        } else if (tab !== last && tab.hasAttribute(LAST)) {
+          tab.removeAttribute(LAST);
         }
       }
-      if (!hovered?.isConnected || isActive(hovered)) {
-        hovered = null;
-        hide();
-      } else {
-        position(hovered);
-      }
-    } catch (error) {
-      console.error(PREFIX, "Refresh failed", error);
     }
   }
 
+  let scheduled = false;
   function schedule() {
-    if (!scheduled) {
-      scheduled = true;
-      window.requestAnimationFrame(refresh);
+    if (scheduled) return;
+    scheduled = true;
+    window.requestAnimationFrame(() => {
+      scheduled = false;
+      updateGroups();
+    });
+  }
+
+  function resolveClose(event) {
+    const path = event.composedPath?.() || [];
+    const button = path.find(node =>
+      node?.classList?.contains("tab-close-button"));
+    if (!button) return null;
+
+    const tab = path.find(node => node?.localName === "tab");
+    if (!tab?.hasAttribute(LAST)) return null;
+    const group = tab.group;
+    if (!group?.hasAttribute("split-view-group") || isActive(group)) return null;
+    return group;
+  }
+
+  function closeAll(group) {
+    const members = tabs(group);
+    // Closing the first tab can dissolve its split-view group; take a copy.
+    for (const tab of members) {
+      if (!tab.isConnected || tab.closing) continue;
+      try {
+        window.gBrowser.removeTab(tab, { animate: false });
+      } catch (error) {
+        console.error(PREFIX, "Could not close tab", error);
+      }
     }
   }
 
-  function onPointerMove(event) {
-    if (button?.contains(event.target)) return;
-    const group = event.target?.closest?.('tab-group[split-view-group]');
-    if (group && !isActive(group)) {
-      hovered = group;
-      position(group);
-    } else {
-      hovered = null;
-      hide();
-    }
+  function interceptClose(event) {
+    if (event.type === "click" && event.button !== 0) return;
+    const group = resolveClose(event);
+    if (!group) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    event.stopPropagation();
+    // The native button may fire both click and command. After closing tabs
+    // its DOM is detached, so a subsequent event cannot close anything else.
+    closeAll(group);
   }
 
   function start() {
     const container = document.getElementById("tabbrowser-tabs");
     if (!container) {
-      console.warn(PREFIX, "Tab container missing");
+      console.warn(PREFIX, "Tab container unavailable");
       return;
     }
-    injectCSS();
-    addOverlay();
-    container.addEventListener("pointermove", onPointerMove, true);
-    container.addEventListener("pointerleave", event => {
-      // The overlay is a sibling of the tab strip. Keep it visible while
-      // moving the pointer from the split row onto its close button.
-      if (event.relatedTarget === button || button?.contains(event.relatedTarget)) return;
-      hovered = null;
-      hide();
-    }, true);
-    button.addEventListener("pointerleave", event => {
-      if (container.contains(event.relatedTarget)) return;
-      hovered = null;
-      hide();
-    });
-    for (const event of ["TabSelect", "TabOpen", "TabClose", "TabGroupCreate", "TabGroupRemove"]) {
-      window.addEventListener(event, schedule, true);
+    installCSS();
+
+    // Capture before the standard tab close handler, keeping the browser's
+    // built-in close icon and its original tab layout.
+    container.addEventListener("click", interceptClose, true);
+    container.addEventListener("command", interceptClose, true);
+
+    for (const name of ["TabSelect", "TabOpen", "TabClose", "TabGroupCreate", "TabGroupRemove"]) {
+      window.addEventListener(name, schedule, true);
     }
     const observer = new MutationObserver(schedule);
     observer.observe(container, {
-      subtree: true,
       childList: true,
+      subtree: true,
       attributes: true,
-      attributeFilter: ["selected", "hasactivetab", "split-view-group"]
+      attributeFilter: ["hasactivetab", "selected", "split-view-group"]
     });
-    refresh();
-    console.info(PREFIX, "0.2.0 loaded");
+    updateGroups();
+    console.info(PREFIX, "0.3.0 loaded");
   }
 
   if (document.readyState === "loading") {
