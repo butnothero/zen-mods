@@ -19,7 +19,7 @@ This repository is a **single Sine package** containing our mods. All executable
 
 ## Included mods
 
-### Folder State Persistence v0.2.0 (experimental)
+### Folder State Persistence v0.3.0 (experimental)
 
 Remembers whether Zen tab folders are expanded or collapsed across complete browser restarts.
 
@@ -35,7 +35,7 @@ Remembers whether Zen tab folders are expanded or collapsed across complete brow
 3. Fully quit Zen and reopen it.
 4. Verify that folder states are restored; repeat for multiple workspaces.
 
-**v0.2.0 has not been tested in a live Zen/Sine session.** Depending on the browser version, Zen may restore folders later than expected, and the script may need adjustments.
+**v0.3.0 has not been tested in a live Zen/Sine session.** Depending on the browser version, Zen may restore folders later than expected, and the script may need adjustments.
 
 ## Files
 
