@@ -29,13 +29,13 @@
   const input = () => document.getElementById(INPUT_ID);
 
   function addSearchHeader() {
-    const panel = popup();
-    if (!panel || document.getElementById(HEADER_ID)) return;
-    const header = document.createXULElement("hbox");
+    const parentList = list();
+    if (!parentList || document.getElementById(HEADER_ID)) return;
+    const header = document.createElement("div");
     header.id = HEADER_ID;
-    const icon = document.createXULElement("image");
+    const icon = document.createElement("img");
     icon.className = "zen-personal-folder-search-icon";
-    icon.setAttribute("src", "chrome://global/skin/icons/search-glass.svg");
+    icon.src = "chrome://global/skin/icons/search-glass.svg";
     const search = document.createElement("input");
     search.id = INPUT_ID;
     search.setAttribute("type", "search");
@@ -47,7 +47,7 @@
     search.addEventListener("keydown", event => {
       if (["ArrowUp", "ArrowDown", "Enter"].includes(event.key)) {
         event.stopPropagation();
-        const items = [...(list()?.children || [])].filter(item => !item.hidden);
+        const items = [...(list()?.children || [])].filter(item => item.classList.contains("folders-tabs-list-item") && !item.hidden);
         if (event.key === "Enter") {
           event.preventDefault();
           (items.find(item => item.hasAttribute("selected")) || items[0])?.click();
@@ -63,9 +63,7 @@
       }
     });
     header.append(icon, search);
-    const oldHeader = panel.querySelector(".tabs-list-header");
-    if (oldHeader) oldHeader.after(header);
-    else panel.insertBefore(header, panel.firstChild);
+    parentList.prepend(header);
   }
 
   function clearHoverTimer() {
@@ -147,6 +145,7 @@
     const needle = (input()?.value || "").trim().toLocaleLowerCase();
     let visible = 0;
     for (const item of list()?.children || []) {
+      if (item.id === HEADER_ID) continue;
       item.hidden = !item.dataset.label?.includes(needle);
       if (!item.hidden) visible++;
     }
@@ -162,6 +161,7 @@
       fragment.appendChild(createItem(tab, parentList));
     }
     parentList.replaceChildren(fragment);
+    addSearchHeader();
     lastRenderedFolderId = group.id;
     applyFilter();
   }
@@ -172,11 +172,12 @@
     style.id = STYLE_ID;
     style.textContent = [
       '#zen-folder-tabs-popup > .tabs-list-header { display: none !important; }',
-      '#zen-folder-tabs-popup > #' + HEADER_ID + ' {',
-      '  display: flex !important; visibility: visible !important;',
+      '#zen-folder-tabs-popup #' + LIST_ID + ' > #' + HEADER_ID + ' {',
+      '  display: flex !important; visibility: visible !important; position: sticky !important; top: 0 !important; z-index: 4 !important;',
       '  align-items: center !important; flex-direction: row !important;',
-      '  min-height: 48px !important; box-sizing: border-box !important;',
+      '  min-height: 48px !important; flex-shrink: 0 !important; box-sizing: border-box !important;',
       '  padding: 8px 12px !important; gap: 9px !important;',
+      '  background: var(--arrowpanel-background, var(--toolbar-bgcolor, #28282a)) !important;',
       '  border-bottom: 1px solid color-mix(in srgb, currentColor, transparent 88%) !important;',
       '}',
       '#zen-folder-tabs-popup #' + HEADER_ID + ' .zen-personal-folder-search-icon {',
@@ -208,7 +209,7 @@
 
   function arrowNavigation(event) {
     if (!expandedPopup) return;
-    const items = [...(list()?.children || [])].filter(item => !item.hidden);
+    const items = [...(list()?.children || [])].filter(item => item.classList.contains("folders-tabs-list-item") && !item.hidden);
     if (event.key === "Escape") {
       popup()?.hidePopup();
       return;
@@ -246,6 +247,7 @@
     expandedPopup = true;
     label.setAttribute("open", "true");
     render(group);
+    if (input()) input().placeholder = "Поиск в " + (group.label || "папке") + "...";
     const right = window.gZenVerticalTabsManager?._prefsRightSide;
     panel.openPopup(label, {
       position: right ? "topleft topright" : "topright topleft",
@@ -286,7 +288,6 @@
       return;
     }
     addStyles();
-    addSearchHeader();
 
     // Native Zen handles search filtering/keyboard navigation for collapsed
     // folders. Rebuild the list once the panel starts opening so visible
@@ -330,7 +331,7 @@
         }
       }, true);
     }
-    console.info(PREFIX, "0.1.1 loaded");
+    console.info(PREFIX, "0.1.2 loaded");
   }
 
   if (document.readyState === "loading") {
