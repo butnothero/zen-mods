@@ -1,57 +1,53 @@
 # Zen Mods
 
-A personal [Zen Browser](https://zen-browser.app/) mod collection, installed through [Sine](https://github.com/CosmoCreeper/Sine).
+Personal mods for [Zen Browser](https://zen-browser.app/) installed with [Sine](https://github.com/CosmoCreeper/Sine).
 
 ## Install
 
-**Sine repository URL:**
+Install directly from this repository URL in **Zen → Settings → Sine Mods**:
 
 ```text
 https://github.com/butnothero/zen-mods
 ```
 
-1. Open Zen → Settings → Sine Mods.
-2. Add the repository URL above as a new mod.
-3. Allow unofficial JavaScript mods if Sine asks (review the code first).
-4. Install or enable the mod, then restart Zen.
+Enable unofficial JavaScript mods only after reviewing the source, then restart Zen.
 
-This repository is a **single Sine package** containing our mods. All executable files referenced by `theme.json` live at the repository root; additional scripts can be added to this same manifest in future.
+## Folder State Persistence v0.4.0 (experimental)
 
-## Included mods
+Remembers folder expansion and the identities of tabs shown within collapsed folders.
 
-### Folder State Persistence v0.3.0 (experimental)
-
-Remembers whether Zen tab folders are expanded or collapsed across complete browser restarts.
-
-- Stores each folder's collapsed state by its Zen group ID.
-- Restores folder states repeatedly during session startup, without overwriting saved states with Zen's initial collapsed state.
-- Does not open/close or move tabs and does not change styling (intended to coexist with Zia).
-- Nested folders should work where Zen exposes them via `gBrowser.tabGroups`.
+- Records `collapsed`, `activeTabIds`, and split-view group references by stable folder/tab IDs.
+- Does **not** recreate/move tabs, split views or workspaces.
+- Uses Zen's own `gZenFolders.animateSelect` to attempt restoring displayed tabs.
+- Split-view references are captured, but display restoration is **best effort**: Zen currently handles selected split-view tabs differently. A split-view tab that was not selected at startup may remain hidden.
+- Restoration may be affected by Zen's known `itemGroup.activeGroups is undefined` startup exception.
+- Works alongside visual mods like Zia in principle; compatibility is not guaranteed.
 
 ### Test
 
-1. Enable this mod and restart Zen.
-2. Expand some folders and collapse others.
-3. Fully quit Zen and reopen it.
-4. Verify that folder states are restored; repeat for multiple workspaces.
+1. Update the mod through Sine and restart Zen.
+2. Wait about 15 seconds for startup.
+3. Arrange the folders as you want (including partially collapsed GitLab, Wiki, Social/another split-view folder).
+4. Wait a few seconds for the current state to be saved.
+5. Verify saved snapshot in **Browser Console**:
 
-**v0.3.0 has not been tested in a live Zen/Sine session.** Depending on the browser version, Zen may restore folders later than expected, and the script may need adjustments.
+   ```js
+   JSON.parse(Services.prefs.getStringPref("extensions.zenmods.folder-state-persistence.v2", "{}"))
+   ```
+
+6. Quit Zen completely and reopen it; wait 15 seconds and compare.
+
+Initial installation creates a new baseline in the `v2` preference; old `v1` collapsed-only values are not forced back onto folders. If the new preference does not exist immediately, wait for startup initialization.
+
+### Troubleshooting
+
+Search for `[Folder State Persistence]` in Browser Console.
+
+The code uses internal browser APIs. This is not a verified, production-safe restore solution. If Zen throws `itemGroup.activeGroups is undefined`, the problem also exists in its session restore code and this mod may not be able to work around it.
+
+To clear saved state, reset `extensions.zenmods.folder-state-persistence.v2` in `about:config`. Do not delete the Zen session files.
 
 ## Files
 
-- `theme.json`: Sine manifest. Add new scripts to its `scripts` section.
-- `folder-state.uc.js`: Folder State Persistence privileged browser script.
-
-## Troubleshooting and reset
-
-If Sine rejects the URL, check that your Sine version supports third-party GitHub mods and unofficial JS. Report the exact error.
-
-To reset saved folder states, open `about:config` and reset `extensions.zenmods.folder-state-persistence.v1`.
-
-JavaScript mods have browser privileges. Install only trusted code.
-
-## Known limitations
-
-- Simultaneous multiple windows are not yet tested.
-- Stale folder IDs are not cleaned automatically.
-- Folder state changes during early startup can be overridden by restoration.
+- `theme.json` — Sine manifest
+- `folder-state.uc.js` — privileged JavaScript
