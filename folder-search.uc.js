@@ -247,6 +247,7 @@
     expandedPopup = true;
     label.setAttribute("open", "true");
     render(group);
+    if (input()) input().placeholder = "Поиск в " + (group.label || "папке") + "...";
     const right = window.gZenVerticalTabsManager?._prefsRightSide;
     panel.openPopup(label, {
       position: right ? "topleft topright" : "topright topleft",
