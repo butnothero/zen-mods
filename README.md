@@ -12,7 +12,7 @@ https://github.com/butnothero/zen-mods
 
 Enable unofficial JavaScript mods only after reviewing the source, then restart Zen.
 
-## Zen Personal Tweaks v0.5.2
+## Zen Personal Tweaks v0.6.0
 
 This repository installs as **one Sine mod**, containing multiple JavaScript features. The existing Sine mod ID remains `folder-state-persistence` so updates do not require installing a second copy.
 
@@ -23,6 +23,19 @@ v0.5.2 eliminates the floating overlay entirely. Inactive Split Views display on
 When a Split View is **inactive**, hovering over its group hides the individual tab close controls and shows **one × on the right**. Clicking that × closes **all tabs in that Split View**, not just one. When the currently selected tab belongs to that Split View, individual tab close controls work normally and the group × disappears.
 
 This uses Zen's internal XUL tab-group structure. The behavior is not yet verified in a live Zen instance. Verify the behavior with a disposable Split View before relying on it. Closing multiple tabs can discard unsaved work, subject to Zen's normal tab close handling.
+
+### Folder Search (experimental)
+
+Arc-like folder tab search, built on Zen's own folder search popup.
+
+- Hover over a collapsed folder to open its native search popup, now showing **all** its tabs, including visible active ones.
+- Hover over an expanded folder to open the same popup.
+- Filter results by tab title or hostname and open a tab by clicking a result.
+- Only icon and title are displayed: **no date or last-accessed time**.
+- Split View members are listed individually, without changing split membership.
+- Does not inject elements into tab-group or change tab placement.
+
+Note: requires `zen.folders.search.enabled` for Zen's native collapsed-folder hover behavior. Test with a few non-sensitive tabs and Zia enabled; popup placement/styling depends on your Zen version.
 
 ### Folder State Persistence v0.4.0 (experimental)
 
@@ -64,3 +77,4 @@ To clear saved state, reset `extensions.zenmods.folder-state-persistence.v2` in 
 - `theme.json` — Sine manifest
 - `folder-state.uc.js` — folder state persistence JavaScript
 - `split-view-smart-close.uc.js` — Split View hover and close behavior
+- `folder-search.uc.js` — Arc-like folder search, no timestamps
