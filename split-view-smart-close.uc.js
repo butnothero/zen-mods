@@ -125,7 +125,7 @@
           group.setAttribute(INACTIVE, next);
         }
       }
-      if (!hovered?.isConnected || isActive(hovered) || !hovered.matches(":hover")) {
+      if (!hovered?.isConnected || isActive(hovered)) {
         hovered = null;
         hide();
       } else {
@@ -164,10 +164,18 @@
     injectCSS();
     addOverlay();
     container.addEventListener("pointermove", onPointerMove, true);
-    container.addEventListener("pointerleave", () => {
+    container.addEventListener("pointerleave", event => {
+      // The overlay is a sibling of the tab strip. Keep it visible while
+      // moving the pointer from the split row onto its close button.
+      if (event.relatedTarget === button || button?.contains(event.relatedTarget)) return;
       hovered = null;
       hide();
     }, true);
+    button.addEventListener("pointerleave", event => {
+      if (container.contains(event.relatedTarget)) return;
+      hovered = null;
+      hide();
+    });
     for (const event of ["TabSelect", "TabOpen", "TabClose", "TabGroupCreate", "TabGroupRemove"]) {
       window.addEventListener(event, schedule, true);
     }
