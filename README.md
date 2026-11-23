@@ -12,7 +12,7 @@ https://github.com/butnothero/zen-mods
 
 Enable unofficial JavaScript mods only after reviewing the source, then restart Zen.
 
-## Zen Personal Tweaks v0.6.2
+## Zen Personal Tweaks v0.6.3
 
 This repository installs as **one Sine mod**, containing multiple JavaScript features. The existing Sine mod ID remains `folder-state-persistence` so updates do not require installing a second copy.
 
@@ -26,7 +26,7 @@ This uses Zen's internal XUL tab-group structure. The behavior is not yet verifi
 
 ### Folder Search (experimental)
 
-v0.6.2 moves the search field **inside the tab-results list** rather than above it, because Zen/Zia can hide the popup's header region. It filters results immediately by title or domain. The field is sticky at the top of the visible list and displays no last-accessed timestamps.
+v0.6.3 keeps the search field as a sibling of the result list, surviving Zen's `replaceChildren()` when it repopulates the results. A `MutationObserver` also detects Zen's native list rebuild and restores full folder search contents without relying solely on popup events. No last-accessed timestamps.
 
 Arc-like folder tab search, built on Zen's own folder search popup.
 

@@ -29,7 +29,7 @@
   const input = () => document.getElementById(INPUT_ID);
 
   function addSearchHeader() {
-    const parentList = list();
+    const parentList = list()?.parentElement;
     if (!parentList || document.getElementById(HEADER_ID)) return;
     const header = document.createElement("div");
     header.id = HEADER_ID;
@@ -63,7 +63,8 @@
       }
     });
     header.append(icon, search);
-    parentList.prepend(header);
+    // A sibling of #zen-folder-tabs-list survives Zen\'s replaceChildren().
+    parentList.insertBefore(header, list());
   }
 
   function clearHoverTimer() {
@@ -172,8 +173,8 @@
     style.id = STYLE_ID;
     style.textContent = [
       '#zen-folder-tabs-popup > .tabs-list-header { display: none !important; }',
-      '#zen-folder-tabs-popup #' + LIST_ID + ' > #' + HEADER_ID + ' {',
-      '  display: flex !important; visibility: visible !important; position: sticky !important; top: 0 !important; z-index: 4 !important;',
+      '#zen-folder-tabs-popup #' + HEADER_ID + ' {',
+      '  display: flex !important; visibility: visible !important; position: relative !important; z-index: 4 !important;',
       '  align-items: center !important; flex-direction: row !important;',
       '  min-height: 48px !important; flex-shrink: 0 !important; box-sizing: border-box !important;',
       '  padding: 8px 12px !important; gap: 9px !important;',
@@ -288,6 +289,29 @@
       return;
     }
     addStyles();
+    addSearchHeader();
+
+    // Zen populates the list using replaceChildren() BEFORE opening the
+    // popup. popupshowing/popupshown are not sufficient for this lifecycle.
+    // Watch the actual native list replacement and re-render all folder tabs.
+    const nativeList = list();
+    if (nativeList) {
+      const listObserver = new MutationObserver(records => {
+        if (!records.some(record => record.type === "childList")) return;
+        const first = nativeList.firstElementChild;
+        // Ignore our own render to avoid an observer feedback loop.
+        if (!first || first.classList?.contains("zen-personal-folder-search-item")) return;
+        const group = folderForPopup();
+        if (group) {
+          render(group);
+          if (input()) {
+            input().value = "";
+            input().placeholder = "Поиск в " + (group.label || "папке") + "...";
+          }
+        }
+      });
+      listObserver.observe(nativeList, { childList: true });
+    }
 
     // Native Zen handles search filtering/keyboard navigation for collapsed
     // folders. Rebuild the list once the panel starts opening so visible
@@ -331,7 +355,7 @@
         }
       }, true);
     }
-    console.info(PREFIX, "0.1.2 loaded");
+    console.info(PREFIX, "0.1.3 loaded");
   }
 
   if (document.readyState === "loading") {
