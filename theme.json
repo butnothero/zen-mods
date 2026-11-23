@@ -1,9 +1,9 @@
 {
   "id": "folder-state-persistence",
   "name": "Zen Personal Tweaks",
-  "description": "Folder state persistence and smart Split View closing in one Sine mod.",
+  "description": "Folder persistence, Split View close controls, and Arc-like folder search.",
   "author": "butnothero",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "scripts": {
     "folder-state.uc.js": {
       "name": "Folder State Persistence",
@@ -18,13 +18,21 @@
       "include": [
         "chrome://browser/content/browser.xhtml"
       ]
+    },
+    "folder-search.uc.js": {
+      "name": "Folder Search",
+      "description": "Search all tabs in a folder using Zen's popup, without last-opened dates.",
+      "include": [
+        "chrome://browser/content/browser.xhtml"
+      ]
     }
   },
   "tags": [
     "folders",
     "tabs",
     "split-view",
-    "session"
+    "session",
+    "search"
   ],
   "fork": [
     "zen"
