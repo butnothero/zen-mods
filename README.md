@@ -12,7 +12,17 @@ https://github.com/butnothero/zen-mods
 
 Enable unofficial JavaScript mods only after reviewing the source, then restart Zen.
 
-## Folder State Persistence v0.4.0 (experimental)
+## Zen Personal Tweaks v0.5.0
+
+This repository installs as **one Sine mod**, containing multiple JavaScript features. The existing Sine mod ID remains `folder-state-persistence` so updates do not require installing a second copy.
+
+### Split View Smart Close (experimental)
+
+When a Split View is **inactive**, hovering over its group hides the individual tab close controls and shows **one × on the right**. Clicking that × closes **all tabs in that Split View**, not just one. When the currently selected tab belongs to that Split View, individual tab close controls work normally and the group × disappears.
+
+This uses Zen's internal XUL tab-group structure. The behavior is not yet verified in a live Zen instance. Verify the behavior with a disposable Split View before relying on it. Closing multiple tabs can discard unsaved work, subject to Zen's normal tab close handling.
+
+### Folder State Persistence v0.4.0 (experimental)
 
 Remembers folder expansion and the identities of tabs shown within collapsed folders.
 
@@ -50,4 +60,5 @@ To clear saved state, reset `extensions.zenmods.folder-state-persistence.v2` in 
 ## Files
 
 - `theme.json` — Sine manifest
-- `folder-state.uc.js` — privileged JavaScript
+- `folder-state.uc.js` — folder state persistence JavaScript
+- `split-view-smart-close.uc.js` — Split View hover and close behavior
