@@ -3,7 +3,7 @@
   "name": "Zen Personal Tweaks",
   "description": "Folder state persistence and smart Split View closing in one Sine mod.",
   "author": "butnothero",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "scripts": {
     "folder-state.uc.js": {
       "name": "Folder State Persistence",
@@ -14,7 +14,7 @@
     },
     "split-view-smart-close.uc.js": {
       "name": "Split View Smart Close",
-      "description": "One close button for inactive split view groups; per-tab buttons when selected.",
+      "description": "Fix individual close buttons for inactive Split Views, without changing group layout.",
       "include": [
         "chrome://browser/content/browser.xhtml"
       ]

@@ -12,11 +12,13 @@ https://github.com/butnothero/zen-mods
 
 Enable unofficial JavaScript mods only after reviewing the source, then restart Zen.
 
-## Zen Personal Tweaks v0.5.0
+## Zen Personal Tweaks v0.5.1
 
 This repository installs as **one Sine mod**, containing multiple JavaScript features. The existing Sine mod ID remains `folder-state-persistence` so updates do not require installing a second copy.
 
 ### Split View Smart Close (experimental)
+
+v0.5.1 removes the injected child from the Split View group, uses a floating overlay, and overrides Zen's important visibility rules for per-tab close buttons. Test the behavior after restarting Zen; this still uses internal APIs.
 
 When a Split View is **inactive**, hovering over its group hides the individual tab close controls and shows **one × on the right**. Clicking that × closes **all tabs in that Split View**, not just one. When the currently selected tab belongs to that Split View, individual tab close controls work normally and the group × disappears.
 
