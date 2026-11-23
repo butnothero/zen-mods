@@ -1,13 +1,20 @@
 {
   "id": "folder-state-persistence",
-  "name": "Folder State Persistence",
-  "description": "Persist folder expansion and visible tabs in Zen (experimental split-view support).",
+  "name": "Zen Personal Tweaks",
+  "description": "Folder state persistence and smart Split View closing in one Sine mod.",
   "author": "butnothero",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "scripts": {
     "folder-state.uc.js": {
       "name": "Folder State Persistence",
       "description": "Remember visible folder tabs and restore them after restarting Zen.",
+      "include": [
+        "chrome://browser/content/browser.xhtml"
+      ]
+    },
+    "split-view-smart-close.uc.js": {
+      "name": "Split View Smart Close",
+      "description": "One close button for inactive split view groups; per-tab buttons when selected.",
       "include": [
         "chrome://browser/content/browser.xhtml"
       ]
@@ -16,6 +23,7 @@
   "tags": [
     "folders",
     "tabs",
+    "split-view",
     "session"
   ],
   "fork": [
