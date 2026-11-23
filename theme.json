@@ -3,11 +3,11 @@
   "name": "Folder State Persistence",
   "description": "Restore expanded and collapsed Zen tab folders across browser restarts.",
   "author": "butnothero",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scripts": {
     "folder-state.uc.js": {
       "name": "Folder State Persistence",
-      "description": "Save folder expansion by stable folder ID and restore after session startup.",
+      "description": "Restore folder expansion without overwriting state during startup.",
       "include": [
         "chrome://browser/content/browser.xhtml"
       ]
