@@ -1,13 +1,13 @@
 {
   "id": "folder-state-persistence",
   "name": "Folder State Persistence",
-  "description": "Restore expanded and collapsed Zen tab folders across browser restarts.",
+  "description": "Persist folder expansion and visible tabs in Zen (experimental split-view support).",
   "author": "butnothero",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "scripts": {
     "folder-state.uc.js": {
       "name": "Folder State Persistence",
-      "description": "Capture folder-heading toggles and persist expanded or collapsed state.",
+      "description": "Remember visible folder tabs and restore them after restarting Zen.",
       "include": [
         "chrome://browser/content/browser.xhtml"
       ]
