@@ -3,7 +3,7 @@
   "name": "Zen Personal Tweaks",
   "description": "Folder persistence, Split View close controls, and Arc-like folder search.",
   "author": "butnothero",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "scripts": {
     "folder-state.uc.js": {
       "name": "Folder State Persistence",
@@ -21,7 +21,7 @@
     },
     "folder-search.uc.js": {
       "name": "Folder Search",
-      "description": "Visible search input for every folder popup; icons and titles without dates.",
+      "description": "Search field embedded into the visible folder tab list, with no dates.",
       "include": [
         "chrome://browser/content/browser.xhtml"
       ]
