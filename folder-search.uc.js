@@ -10,7 +10,8 @@
   const STYLE_ID = "zen-personal-folder-search-css";
   const POPUP_ID = "zen-folder-tabs-popup";
   const LIST_ID = "zen-folder-tabs-list";
-  const INPUT_ID = "zen-folder-tabs-list-search";
+  const INPUT_ID = "zen-personal-folder-search-input";
+  const HEADER_ID = "zen-personal-folder-search-header";
   const HOVER_DELAY = 350;
 
   if (window.__zenPersonalFolderSearch) return;
@@ -26,6 +27,46 @@
   const popup = () => document.getElementById(POPUP_ID);
   const list = () => document.getElementById(LIST_ID);
   const input = () => document.getElementById(INPUT_ID);
+
+  function addSearchHeader() {
+    const panel = popup();
+    if (!panel || document.getElementById(HEADER_ID)) return;
+    const header = document.createXULElement("hbox");
+    header.id = HEADER_ID;
+    const icon = document.createXULElement("image");
+    icon.className = "zen-personal-folder-search-icon";
+    icon.setAttribute("src", "chrome://global/skin/icons/search-glass.svg");
+    const search = document.createElement("input");
+    search.id = INPUT_ID;
+    search.setAttribute("type", "search");
+    search.setAttribute("autocomplete", "off");
+    search.setAttribute("spellcheck", "false");
+    search.setAttribute("aria-label", "Поиск вкладок в папке");
+    search.setAttribute("placeholder", "Поиск вкладок...");
+    search.addEventListener("input", applyFilter);
+    search.addEventListener("keydown", event => {
+      if (["ArrowUp", "ArrowDown", "Enter"].includes(event.key)) {
+        event.stopPropagation();
+        const items = [...(list()?.children || [])].filter(item => !item.hidden);
+        if (event.key === "Enter") {
+          event.preventDefault();
+          (items.find(item => item.hasAttribute("selected")) || items[0])?.click();
+          return;
+        }
+        if (!items.length) return;
+        event.preventDefault();
+        let i = items.findIndex(item => item.hasAttribute("selected"));
+        i = (i + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+        for (const item of items) item.removeAttribute("selected");
+        items[i].setAttribute("selected", "true");
+        items[i].scrollIntoView({ block: "nearest" });
+      }
+    });
+    header.append(icon, search);
+    const oldHeader = panel.querySelector(".tabs-list-header");
+    if (oldHeader) oldHeader.after(header);
+    else panel.insertBefore(header, panel.firstChild);
+  }
 
   function clearHoverTimer() {
     if (hoverTimer !== null) {
@@ -130,6 +171,25 @@
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = [
+      '#zen-folder-tabs-popup > .tabs-list-header { display: none !important; }',
+      '#zen-folder-tabs-popup > #' + HEADER_ID + ' {',
+      '  display: flex !important; visibility: visible !important;',
+      '  align-items: center !important; flex-direction: row !important;',
+      '  min-height: 48px !important; box-sizing: border-box !important;',
+      '  padding: 8px 12px !important; gap: 9px !important;',
+      '  border-bottom: 1px solid color-mix(in srgb, currentColor, transparent 88%) !important;',
+      '}',
+      '#zen-folder-tabs-popup #' + HEADER_ID + ' .zen-personal-folder-search-icon {',
+      '  width: 16px !important; height: 16px !important; flex-shrink: 0 !important;',
+      '  opacity: .6;',
+      '}',
+      '#zen-folder-tabs-popup #' + INPUT_ID + ' {',
+      '  display: block !important; visibility: visible !important;',
+      '  min-width: 0 !important; width: 100% !important; flex: 1 !important;',
+      '  background: transparent !important; color: inherit !important;',
+      '  border: none !important; outline: none !important;',
+      '  font: inherit !important; padding: 4px 0 !important;',
+      '}',
       '#zen-folder-tabs-popup .tab-list-item-secondary-label {',
       '  display: none !important;',
       '}',
@@ -226,11 +286,13 @@
       return;
     }
     addStyles();
+    addSearchHeader();
 
     // Native Zen handles search filtering/keyboard navigation for collapsed
     // folders. Rebuild the list once the panel starts opening so visible
     // tabs are included and no timestamps are rendered.
     panel.addEventListener("popupshowing", () => {
+      if (input()) input().value = "";
       const group = folderForPopup();
       if (group) {
         render(group);
@@ -239,6 +301,9 @@
           search.placeholder = "Поиск в " + (group.label || "папке") + "...";
         }
       }
+    });
+    panel.addEventListener("popupshown", () => {
+      setTimeout(() => input()?.focus(), 0);
     });
     panel.addEventListener("popuphidden", () => {
       clearHoverTimer();
@@ -265,7 +330,7 @@
         }
       }, true);
     }
-    console.info(PREFIX, "0.1.0 loaded");
+    console.info(PREFIX, "0.1.1 loaded");
   }
 
   if (document.readyState === "loading") {

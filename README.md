@@ -12,7 +12,7 @@ https://github.com/butnothero/zen-mods
 
 Enable unofficial JavaScript mods only after reviewing the source, then restart Zen.
 
-## Zen Personal Tweaks v0.6.0
+## Zen Personal Tweaks v0.6.1
 
 This repository installs as **one Sine mod**, containing multiple JavaScript features. The existing Sine mod ID remains `folder-state-persistence` so updates do not require installing a second copy.
 
@@ -25,6 +25,8 @@ When a Split View is **inactive**, hovering over its group hides the individual 
 This uses Zen's internal XUL tab-group structure. The behavior is not yet verified in a live Zen instance. Verify the behavior with a disposable Split View before relying on it. Closing multiple tabs can discard unsaved work, subject to Zen's normal tab close handling.
 
 ### Folder Search (experimental)
+
+v0.6.1 explicitly adds a visible search header above Zen's tab list, fixing cases where themes such as Zia hide the built-in input. The custom field filters results immediately by title or domain and gets focus when the popup appears.
 
 Arc-like folder tab search, built on Zen's own folder search popup.
 
